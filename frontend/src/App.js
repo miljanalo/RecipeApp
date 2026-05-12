@@ -1,24 +1,39 @@
-import logo from './logo.svg';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import Home from './screens/HomeScreen';
+import Recipes from './screens/RecipesScreen';
+import AddRecipe from './screens/CreateRecipeScreen';
+import RecipeDetail from './screens/RecipeDetailScreen';
+import Login from './screens/auth/LoginScreen';
+import Register from './screens/auth/RegisterScreen';
+import Profile from './screens/ProfileScreen';
+import Admin from './screens/admin/AdminDashboard';
+
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <div className="flex flex-col min-h-screen bg-gray-50">
+        <Navbar />
+        
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/recipes" element={<Recipes />} />
+            <Route path="/recipes/:id" element={<RecipeDetail />} />
+            <Route path="/add-recipe" element={<AddRecipe />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<Admin />} />
+          </Routes>
+        </main>
+        
+        <Footer />
+      </div>
+    </Router>
   );
 }
 
