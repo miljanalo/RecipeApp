@@ -36,12 +36,12 @@ export default function RecipeCard({ id, title, image, author, rating, difficult
         {/* Sadržaj */}
         <div className="p-4">
           {/* Naslov */}
-          <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2 hover:text-orange-600">
+          <h3 className="font-bold text-lg text-textsiva mb-2 line-clamp-2 hover:text-orange-600">
             {title}
           </h3>
 
           {/* Autor */}
-          <p className="text-sm text-gray-600 mb-3">
+          <p className="text-sm text-textsvetlosiva mb-3">
             Autor: <span className="font-semibold">{author}</span>
           </p>
 
@@ -50,12 +50,12 @@ export default function RecipeCard({ id, title, image, author, rating, difficult
             {/* Rating */}
             <div className="flex items-center gap-1">
               <span className="text-yellow-400">⭐</span>
-              <span className="font-semibold text-gray-900">{rating}</span>
-              <span className="text-sm text-gray-600">/5</span>
+              <span className="font-semibold text-textsiva">{rating}</span>
+              <span className="text-sm text-textsvetlosiva">/5</span>
             </div>
 
             {/* Vreme pripreme */}
-            <div className="flex items-center gap-1 text-sm text-gray-600">
+            <div className="flex items-center gap-1 text-sm text-textsvetlosiva">
               <span>⏱️</span>
               <span>{cookTime} min</span>
             </div>
