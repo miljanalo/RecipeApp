@@ -11,6 +11,8 @@ export default {
 
         primarydark: '#556f53',
 
+        svetlija: '#A8C3A4',
+
         textsiva: '#292524',
 
         textsvetlosiva: '#4B5563'

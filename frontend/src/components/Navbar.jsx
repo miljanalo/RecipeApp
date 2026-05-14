@@ -21,8 +21,13 @@ export default function Navbar() {
             <Link to="/" className="text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
               Početna
             </Link>
+
             <Link to="/recipes" className="text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
               Recepti
+            </Link>
+
+            <Link to="/profile" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
+              Profil
             </Link>
             
           </div>
@@ -52,6 +57,9 @@ export default function Navbar() {
             </Link>
             <Link to="/recipes" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md">
               Recepti
+            </Link>
+            <Link to="/profile" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md">
+              Profil
             </Link>
             
           </div>
