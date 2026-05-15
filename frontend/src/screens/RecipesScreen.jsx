@@ -1,9 +1,15 @@
 import RecipeCard from '../components/RecipeCard';
 import recipes from '../data/data';
+import { motion } from 'framer-motion';
 
 export default function Recipes() {
   return (
-    <div className="min-h-[calc(100vh-200px)] bg-gray-50 py-8">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-[calc(100vh-200px)] bg-gray-50 py-8"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Naslov */}
@@ -25,6 +31,6 @@ export default function Recipes() {
         </div>
 
       </div>
-    </div>
+    </motion.div>
   );
 }

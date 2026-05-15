@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
-export default function Navbar() {
+export default function Navbar({user, setUser}) {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => {
@@ -26,9 +26,35 @@ export default function Navbar() {
               Recepti
             </Link>
 
-            <Link to="/profile" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
-              Profil
-            </Link>
+            {!user &&(
+              <>
+                <Link to="/login" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
+                  Prijava
+                </Link>
+
+                <Link to="/register" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
+                  Kreiraj nalog
+                </Link>
+              </>
+            )}
+
+            {user && (
+              <>
+                <Link to="/profile" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
+                  Profil
+                </Link>
+                
+                <button className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition"
+                  onClick={() => {
+                    localStorage.removeItem('user');
+                    setUser(null);
+                  }}
+                >
+                  Odjava
+                </button>
+
+              </>
+            )}
             
           </div>
 
@@ -52,15 +78,44 @@ export default function Navbar() {
         {/* Padajuca lista za meni na manjem ekranu */}
         {isOpen && (
           <div className="md:hidden pb-4 space-y-2">
+
             <Link to="/" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md">
               Početna
             </Link>
+
             <Link to="/recipes" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md">
               Recepti
             </Link>
-            <Link to="/profile" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md">
-              Profil
-            </Link>
+
+            {!user &&(
+              <>
+                <Link to="/login" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
+                  Prijava
+                </Link>
+
+                <Link to="/register" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
+                  Kreiraj nalog
+                </Link>
+              </>
+            )}
+
+            {user && (
+              <>
+                <Link to="/profile" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
+                  Profil
+                </Link>
+                
+                <button className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition"
+                  onClick={() => {
+                    localStorage.removeItem('user');
+                    setUser(null);
+                  }}
+                >
+                  Odjava
+                </button>
+
+              </>
+            )}
             
           </div>
         )}
