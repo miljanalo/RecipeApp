@@ -127,7 +127,7 @@ export default function Home({user}) {
                 to="/recipes"
                 className="bg-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-primarydark transition"
               >
-                Pogledaj Sve Recepte →
+                Pogledaj sve recepte →
               </Link>
             </div>
           </div>

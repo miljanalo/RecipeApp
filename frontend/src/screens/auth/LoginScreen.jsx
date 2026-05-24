@@ -58,7 +58,7 @@ export default function LoginScreen({setUser}) {
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
         
         <div className="text-center mb-8">
-          <div className="text-5xl mb-3">🍳</div>
+          <div className="text-5xl mb-3">🍽️</div>
           <h2 className="text-3xl font-bold text-gray-900">RecipeBook</h2>
           <p className="text-gray-600 mt-2">Prijavite se na svoj nalog</p>
         </div>
@@ -84,8 +84,7 @@ export default function LoginScreen({setUser}) {
               required
               value={formData.email}
               onChange={handleChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primarydark focus:border-transparent outline-none transition"
-              placeholder="primer@email.com"
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition"
             />
           </div>
  
