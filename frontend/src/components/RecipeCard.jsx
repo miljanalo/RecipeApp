@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 
-export default function RecipeCard({ id, title, image, author, rating, difficulty, cookTime }) {
+export default function RecipeCard({ _id, title, image, author, rating, difficulty, cookTime }) {
 
   const getDifficultyColor = (difficulty) => {
     switch(difficulty) {
@@ -17,7 +17,7 @@ export default function RecipeCard({ id, title, image, author, rating, difficult
   };
 
   return (
-    <Link to={`/recipes/${id}`}>
+    <Link to={`/recipes/${_id}`}>
       <div className="bg-white rounded-lg shadow-md hover:shadow-xl transition overflow-hidden h-full">
         {/* Slika recepta */}
         <div className="relative h-48 bg-gray-200 overflow-hidden">

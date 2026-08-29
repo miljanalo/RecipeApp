@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import recipes from '../data/data';
+import { useState, useEffect } from 'react';
 
 export default function RecipeDetail() {
 
@@ -18,13 +17,42 @@ export default function RecipeDetail() {
   };
 
   const { id } = useParams();
+  console.log('ID iz URL-a:', id);
   const navigate = useNavigate();
   
   const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
  
-  const recipe = recipes.find(recipe => recipe.id === Number(id));
+  const [recipe, setRecipe] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+  fetch(`http://localhost:5000/api/recipes/${id}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Recept nije pronađen');
+      }
+
+      return response.json();
+    })
+    .then(data => {
+      setRecipe(data);
+      setLoading(false);
+    })
+    .catch(error => {
+      console.error('Greška pri učitavanju recepta:', error);
+      setLoading(false);
+    });
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-20 text-gray-600">
+        Učitavanje recepta...
+      </div>
+    );
+  }
 
   if (!recipe) {
     return (

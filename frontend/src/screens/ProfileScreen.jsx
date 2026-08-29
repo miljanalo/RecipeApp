@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import profile from '../data/profiledata';
-import placeholder from '../assets/images/placeholder.jpg';
-import recipes from '../data/data';
 import RecipeCard from '../components/RecipeCard';
 
 export default function Profile() {
+  
   const navigate = useNavigate();
+
+  const [recipes, setRecipes] = useState([]);
+  const [loadingRecipes, setLoadingRecipes] = useState(true);
+
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState(profile);
  
@@ -24,6 +27,25 @@ export default function Profile() {
     setProfileData(formData);
     setIsEditing(false);
   };
+
+  useEffect(() => {
+  fetch('http://localhost:5000/api/recipes')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Greška pri učitavanju recepata');
+      }
+
+      return response.json();
+    })
+    .then(data => {
+      setRecipes(data);
+      setLoadingRecipes(false);
+    })
+    .catch(error => {
+      console.error('Greška pri učitavanju recepata:', error);
+      setLoadingRecipes(false);
+    });
+  }, []);
  
   return (
     <div className="min-h-[calc(100vh-200px)] bg-gray-50 py-12">
@@ -188,9 +210,16 @@ export default function Profile() {
           {/* mojii recepti */}
           <div className="p-8">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {recipes.map(recipe => (
-                <RecipeCard key={recipe.id} {...recipe} />
-              ))}
+              {loadingRecipes ? (
+                <p className="text-gray-600">Učitavanje recepata...</p>
+              ) : (
+                recipes.map(recipe => (
+                  <RecipeCard
+                    key={recipe._id}
+                    {...recipe}
+                  />
+                ))
+              )}
             </div>
           </div>
 

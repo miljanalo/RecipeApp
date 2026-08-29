@@ -1,10 +1,23 @@
 import { Link } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
-import recipes from '../data/data';
 import { motion } from 'framer-motion';
-
+import { useEffect, useState } from 'react';
+import { uploadImage } from '../services/cloudinaryService';
 
 export default function Home({user}) {
+
+  const [recipes, setRecipes] = useState([]);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/api/recipes')
+      .then(response => response.json())
+      .then(data => {
+        setRecipes(data);
+      })
+      .catch(error => {
+        console.error('Greška pri učitavanju recepata:', error);
+      });
+  }, []);
 
   return (
     <motion.div 
@@ -118,7 +131,7 @@ export default function Home({user}) {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {recipes.map(recipe => (
-                <RecipeCard key={recipe.id} {...recipe} />
+                <RecipeCard key={recipe._id} {...recipe} />
               ))}
             </div>
 
@@ -132,6 +145,25 @@ export default function Home({user}) {
             </div>
           </div>
         </section>
+
+{/* TEST ZA UPLOAD */}
+        <input
+  type="file"
+  accept="image/*"
+  onChange={async (e) => {
+    const file = e.target.files[0];
+
+    if (!file) return;
+
+    try {
+      const imageUrl = await uploadImage(file);
+
+      console.log('Uploaded image:', imageUrl);
+    } catch (error) {
+      console.error(error);
+    }
+  }}
+/>
 
         {/* --------------------- */}
         <section className="bg-primary text-white py-16">
