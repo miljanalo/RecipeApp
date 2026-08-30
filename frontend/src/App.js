@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
+import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './screens/HomeScreen';
@@ -10,13 +10,45 @@ import Login from './screens/auth/LoginScreen';
 import Register from './screens/auth/RegisterScreen';
 import Profile from './screens/ProfileScreen';
 import Admin from './screens/admin/AdminDashboard';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 function App() {
 
   const [user, setUser] = useState(
     JSON.parse(localStorage.getItem('user'))
   );
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        return;
+    }
+
+    fetch('http://localhost:5000/api/auth/me', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Token nije validan');
+            }
+
+            return response.json();
+        })
+        .then(data => {
+            setUser(data);
+            localStorage.setItem('user', JSON.stringify(data));
+        })
+        .catch(error => {
+            console.error('Greška pri proveri korisnika:', error);
+
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+        });
+  }, []);
 
   return (
     <Router>
@@ -30,9 +62,9 @@ function App() {
             <Route path="/register" element={<Register />} />
             <Route path="/recipes" element={<Recipes />} />
             <Route path="/recipes/:id" element={<RecipeDetail />} />
-            <Route path="/add-recipe" element={<AddRecipe />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/add-recipe" element={<ProtectedRoute user={user}> <AddRecipe /> </ProtectedRoute>}/>
+            <Route path="/profile" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>}/>
+            <Route path="/admin" element={<ProtectedRoute user={user}><Admin /></ProtectedRoute>}/>
           </Routes>
         </main>
         

@@ -8,6 +8,14 @@ export default function Navbar({user, setUser}) {
     setIsOpen(!isOpen);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+
+    setUser(null);
+    setIsOpen(false);
+  };
+
   return (
     <nav className="bg-primary shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -45,10 +53,7 @@ export default function Navbar({user, setUser}) {
                 </Link>
                 
                 <button className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition"
-                  onClick={() => {
-                    localStorage.removeItem('user');
-                    setUser(null);
-                  }}
+                  onClick={handleLogout}
                 >
                   Odjava
                 </button>
@@ -106,10 +111,7 @@ export default function Navbar({user, setUser}) {
                 </Link>
                 
                 <button className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition"
-                  onClick={() => {
-                    localStorage.removeItem('user');
-                    setUser(null);
-                  }}
+                  onClick={handleLogout}
                 >
                   Odjava
                 </button>

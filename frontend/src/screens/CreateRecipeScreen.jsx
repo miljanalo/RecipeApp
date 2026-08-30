@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { uploadImage } from '../services/cloudinaryService';
 
 export default function AddRecipe() {
   const navigate = useNavigate();
@@ -97,11 +98,53 @@ export default function AddRecipe() {
     setLoading(true);
 
     try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        setError('Morate biti prijavljeni da biste dodali recept.');
+        return;
+      }
+
+      let imageUrl = '';
+
+      if (formData.image) {
+        imageUrl = await uploadImage(formData.image);
+      }
+
+      const recipeData = {
+        title: formData.title,
+        description: formData.description,
+        ingredients: formData.ingredients,
+        instructions: formData.instructions,
+        cookTime: Number(formData.cookTime),
+        servings: Number(formData.servings),
+        difficulty: formData.difficulty,
+        mealType: formData.mealType,
+        image: imageUrl
+      };
+
+      const response = await fetch('http://localhost:5000/api/recipes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(recipeData)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Greška pri dodavanju recepta');
+      }
       
-      console.log('Dodavanje recepta:', formData);
+      console.log('Uspešno dodat recept:', data);
+
       navigate('/recipes');
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Greška pri dodavanju recepta');
+      console.error('Greška pri dodavanju recepta:', err);
+      setError(err.message || 'Greška pri dodavanju recepta');
     } finally {
       setLoading(false);
     }

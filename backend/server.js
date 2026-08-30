@@ -9,6 +9,8 @@ const User = require('./models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+const authMiddleware = require('./middleware/authMiddleware');
+
 const app = express();
 
 app.use(cors());
@@ -38,9 +40,12 @@ app.get('/api/recipes', async (req, res) => {
     }
 });
 
-app.post('/api/recipes', async (req, res) => {
+app.post('/api/recipes', authMiddleware, async (req, res) => {
     try {
-        const recipe = new Recipe(req.body);
+        const recipe = new Recipe({
+            ...req.body,
+            author: req.userId
+        });
 
         const savedRecipe = await recipe.save();
 
@@ -234,6 +239,26 @@ app.post('/api/auth/login', async (req, res) => {
                 profilePicture: user.profilePicture
             }
         });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
+app.get('/api/auth/me', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId)
+            .select('-password');
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Korisnik nije pronađen.'
+            });
+        }
+
+        res.status(200).json(user);
 
     } catch (error) {
         res.status(500).json({
