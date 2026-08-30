@@ -23,27 +23,37 @@ export default function LoginScreen({setUser}) {
     e.preventDefault();
     setError('');
     setLoading(true);
- 
+
     try {
-      
-      // Privremeno 
-      if (formData.email && formData.password) {
-        const fakeUser = {
-          username: 'markomarkovic',
-          email: formData.email
-        };
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
 
-        localStorage.setItem('user', JSON.stringify(fakeUser));
+      const data = await response.json();
 
-        setUser(fakeUser);
-
-        navigate('/');
+      if (!response.ok) {
+        throw new Error(data.message || 'Greška pri prijavi');
       }
-      
+
+      // sacuvaj token
+      localStorage.setItem('token', data.token);
+
+      // sacuvaj trenutno ulogovanog korisnika
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // obavesti app da je korisnik ulogovan
+      setUser(data.user);
+
+      navigate('/');
+
     } catch (err) {
-  console.log(err);
-  setError('Greška pri prijavi');
-} finally {
+      console.error('Greška pri prijavi:', err);
+      setError(err.message);
+    } finally {
       setLoading(false);
     }
   };

@@ -42,7 +42,10 @@ export default function RecipeCard({ _id, title, image, author, rating, difficul
 
           {/* Autor */}
           <p className="text-sm text-textsvetlosiva mb-3">
-            Autor: <span className="font-semibold">{author}</span>
+            Autor:{' '}
+            <span className="font-semibold">
+              {author?.firstName} {author?.lastName}
+            </span>
           </p>
 
           {/* Rating i Vreme */}
