@@ -96,20 +96,6 @@ app.get('/api/recipes/:id', async (req, res) => {
     }
 });
 
-{/* recepti jednog korisnika */}
-app.get('/api/users/:userId/recipes', async (req, res) => {
-    try {
-        const recipes = await Recipe.find({
-            author: req.params.userId
-        }).populate('author');
-
-        res.status(200).json(recipes);
-    } catch (error) {
-        res.status(500).json({
-            message: error.message
-        });
-    }
-});
 
 {/* user apis */}
 
@@ -259,6 +245,55 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
         }
 
         res.status(200).json(user);
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
+app.put('/api/auth/me', authMiddleware, async (req, res) => {
+    try {
+        const { firstName, lastName, bio, profilePicture } = req.body;
+
+        const updatedUser = await User.findByIdAndUpdate(
+            req.userId,
+            {
+                firstName,
+                lastName,
+                bio,
+                profilePicture
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        ).select('-password');
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                message: 'Korisnik nije pronađen.'
+            });
+        }
+
+        res.status(200).json(updatedUser);
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
+//recepti korisnika
+app.get('/api/users/me/recipes', authMiddleware, async (req, res) => {
+    try {
+        const recipes = await Recipe.find({
+            author: req.userId
+        }).populate('author');
+
+        res.status(200).json(recipes);
 
     } catch (error) {
         res.status(500).json({
