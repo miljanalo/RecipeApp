@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useState } from 'react';
 
 export default function RecipeCard({ _id, title, image, author, rating, difficulty, cookTime }) {
 

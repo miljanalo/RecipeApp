@@ -121,7 +121,7 @@ export default function RecipeDetail() {
             {recipe.title}
           </h1>
           <p className="text-gray-600 mb-6">
-            Autor: <span className="font-semibold text-gray-900">{recipe.author}</span>
+            Autor: <span className="font-semibold text-gray-900">{recipe.author?.firstName} {recipe.author?.lastName}</span>
           </p>
  
           {/* lajkovi, saveovi,... */}

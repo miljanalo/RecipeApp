@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import profile from '../data/profiledata';
 import RecipeCard from '../components/RecipeCard';
+import profilePlaceholder from '../assets/images/blank-profile-picture-973460-1-1-1024x1024-1.png';
 
 export default function Profile() {
   
@@ -11,10 +11,17 @@ export default function Profile() {
   const [loadingRecipes, setLoadingRecipes] = useState(true);
 
   const [isEditing, setIsEditing] = useState(false);
-  const [profileData, setProfileData] = useState(profile);
+  const [profileData, setProfileData] = useState(null);  
  
-  const [formData, setFormData] = useState(profileData);
- 
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    bio: '',
+    profilePicture: ''
+  });
+
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -24,18 +31,95 @@ export default function Profile() {
   };
  
   const handleSave = async () => {
-    setProfileData(formData);
-    setIsEditing(false);
+    try {
+        const token = localStorage.getItem('token');
+
+        const response = await fetch('http://localhost:5000/api/auth/me', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                bio: formData.bio,
+                profilePicture: formData.profilePicture
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Greška pri izmeni profila');
+        }
+
+        setProfileData(data);
+        setFormData(data);
+
+        localStorage.setItem('user', JSON.stringify(data));
+
+        setIsEditing(false);
+
+    } catch (error) {
+        console.error('Greška pri izmeni profila:', error);
+    }
   };
 
   useEffect(() => {
-  fetch('http://localhost:5000/api/recipes')
-    .then(response => {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    setLoadingProfile(false);
+    return;
+  }
+
+  fetch('http://localhost:5000/api/auth/me', {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  })
+    .then(async response => {
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error('Greška pri učitavanju recepata');
+        throw new Error(data.message || 'Greška pri učitavanju profila');
       }
 
-      return response.json();
+      return data;
+    })
+    .then(data => {
+      setProfileData(data);
+      setFormData(data);
+      setLoadingProfile(false);
+    })
+    .catch(error => {
+      console.error('Greška pri učitavanju profila:', error);
+      setLoadingProfile(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setLoadingRecipes(false);
+      return;
+    }
+  
+    fetch('http://localhost:5000/api/users/me/recipes', {
+    headers: {
+        'Authorization': `Bearer ${token}`
+    }
+    })
+    .then(async response => {
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Greška pri učitavanju recepata');
+      }
+
+      return data;
     })
     .then(data => {
       setRecipes(data);
@@ -46,6 +130,26 @@ export default function Profile() {
       setLoadingRecipes(false);
     });
   }, []);
+
+  if (loadingProfile) {
+    return (
+      <div className="min-h-[calc(100vh-200px)] bg-gray-50 flex items-center justify-center">
+        <p className="text-gray-600 text-lg">
+          Učitavanje profila...
+        </p>
+      </div>
+    );
+  }
+
+  if (!profileData) {
+    return (
+      <div className="min-h-[calc(100vh-200px)] bg-gray-50 flex items-center justify-center">
+        <p className="text-red-600 text-lg">
+          Nije moguće učitati profil.
+        </p>
+      </div>
+    );
+  }
  
   return (
     <div className="min-h-[calc(100vh-200px)] bg-gray-50 py-12">
@@ -58,7 +162,7 @@ export default function Profile() {
             {/* profilna */}
             <div className="flex-shrink-0">
               <img
-                src={profileData.profilePicture}
+                src={profileData.profilePicture || profilePlaceholder}
                 alt={profileData.username}
                 className="w-32 h-32 rounded-full border-4 border-primary object-cover"
               />
@@ -79,7 +183,7 @@ export default function Profile() {
               {/* pratioci, recepti,... */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{profileData.myRecipes}</div>
+                  <div className="text-2xl font-bold text-primary">{recipes.length}</div>
                   <div className="text-sm text-gray-600">Recepti</div>
                 </div>
                 <div className="text-center">
