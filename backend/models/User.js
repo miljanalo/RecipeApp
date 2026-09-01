@@ -41,8 +41,15 @@ const userSchema = new mongoose.Schema(
         profilePicture: {
             type: String,
             default: ''
-        }
+        },
+        savedRecipes: [
+            {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'Recipe'
+            }
+        ]
     },
+    
     {
         timestamps: true
     }

@@ -302,6 +302,107 @@ app.get('/api/users/me/recipes', authMiddleware, async (req, res) => {
     }
 });
 
+// sacuvani recepti korisnika
+
+// GET - dobavljanje sacuvanih recepata
+app.get('/api/users/me/saved-recipes', authMiddleware, async (req, res) => {
+    try {
+        const user = await User.findById(req.userId)
+            .populate('savedRecipes');
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Korisnik nije pronađen.'
+            });
+        }
+
+        res.status(200).json(user.savedRecipes);
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
+
+// POST - cuvanje recepta
+app.post('/api/users/me/saved-recipes/:recipeId', authMiddleware, async (req, res) => {
+    try {
+        const { recipeId } = req.params;
+
+        // proveravamo da li recept postoji
+        const recipe = await Recipe.findById(recipeId);
+
+        if (!recipe) {
+            return res.status(404).json({
+                message: 'Recept nije pronađen.'
+            });
+        }
+
+        const user = await User.findById(req.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Korisnik nije pronađen.'
+            });
+        }
+
+        // proveravamo da li je recept već sačuvan
+        if (user.savedRecipes.includes(recipeId)) {
+            return res.status(400).json({
+                message: 'Recept je već sačuvan.'
+            });
+        }
+
+        user.savedRecipes.push(recipeId);
+
+        await user.save();
+
+        res.status(200).json({
+            message: 'Recept je uspešno sačuvan.',
+            savedRecipes: user.savedRecipes
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
+
+// DELETE - uklanjanje recepta iz sacuvanih
+app.delete('/api/users/me/saved-recipes/:recipeId', authMiddleware, async (req, res) => {
+    try {
+        const { recipeId } = req.params;
+
+        const user = await User.findById(req.userId);
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Korisnik nije pronađen.'
+            });
+        }
+
+        user.savedRecipes = user.savedRecipes.filter(
+            id => id.toString() !== recipeId
+        );
+
+        await user.save();
+
+        res.status(200).json({
+            message: 'Recept je uklonjen iz sačuvanih.',
+            savedRecipes: user.savedRecipes
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
 const PORT = 5000;
 
 app.listen(PORT, () => {

@@ -2,15 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import profilePlaceholder from '../assets/images/blank-profile-picture-973460-1-1-1024x1024-1.png';
+import { uploadImage } from '../services/cloudinaryService';
 
 export default function Profile() {
   
   const navigate = useNavigate();
 
-  const [recipes, setRecipes] = useState([]);
-  const [loadingRecipes, setLoadingRecipes] = useState(true);
-
-  const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState(null);  
  
   const [formData, setFormData] = useState({
@@ -21,50 +18,21 @@ export default function Profile() {
   });
 
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+
+  const [profileImage, setProfileImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState('');
+
+  const [recipes, setRecipes] = useState([]);
+  const [savedRecipes, setSavedRecipes] = useState([]);
+
+  const [loadingRecipes, setLoadingRecipes] = useState(true);
+  const [loadingSavedRecipes, setLoadingSavedRecipes] = useState(true);
+
+  const [activeTab, setActiveTab] = useState('recipes');
   
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
- 
-  const handleSave = async () => {
-    try {
-        const token = localStorage.getItem('token');
-
-        const response = await fetch('http://localhost:5000/api/auth/me', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                bio: formData.bio,
-                profilePicture: formData.profilePicture
-            })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || 'Greška pri izmeni profila');
-        }
-
-        setProfileData(data);
-        setFormData(data);
-
-        localStorage.setItem('user', JSON.stringify(data));
-
-        setIsEditing(false);
-
-    } catch (error) {
-        console.error('Greška pri izmeni profila:', error);
-    }
-  };
+ //ucitavanje profila
 
   useEffect(() => {
   const token = localStorage.getItem('token');
@@ -99,6 +67,8 @@ export default function Profile() {
     });
   }, []);
 
+  //ucitavanje korisnikovih recepata
+
   useEffect(() => {
     const token = localStorage.getItem('token');
 
@@ -131,6 +101,125 @@ export default function Profile() {
     });
   }, []);
 
+  //ucitavanje savuvanih recepata
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      setLoadingSavedRecipes(false);
+      return;
+    }
+    
+    fetch('http://localhost:5000/api/users/me/saved-recipes', { 
+      headers: {
+        Authorization: `Bearer ${token}` 
+      }
+    })
+    .then(async response => {
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'Greška pri učitavanju sačuvanih recepata'
+        ); 
+      } 
+      return data; 
+    }) 
+    .then(data => {
+      setSavedRecipes(data);
+      setLoadingSavedRecipes(false);
+    })
+    .catch(error => {
+      console.error(
+        'Greška pri učitavanju sačuvanih recepata:',
+        error
+      );
+      setLoadingSavedRecipes(false);
+    });
+  },[]);
+
+  //izmena profila
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  //cuvanje profila
+ 
+  const handleSave = async () => {
+    try {
+        const token = localStorage.getItem('token');
+
+        let profilePictureUrl = formData.profilePicture;
+        
+        if (profileImage) {
+          profilePictureUrl = await uploadImage(profileImage);
+        }
+
+        const response = await fetch('http://localhost:5000/api/auth/me', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                bio: formData.bio,
+                profilePicture: profilePictureUrl
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Greška pri izmeni profila');
+        }
+
+        setProfileData(data);
+        setFormData({
+          firstName: data.firstName || '',
+          lastName: data.lastName || '',
+          bio: data.bio || '',
+          profilePicture: data.profilePicture || ''
+        });
+
+        setProfileImage(null);
+        setProfileImagePreview('');
+
+        localStorage.setItem('user', JSON.stringify(data));
+
+        setIsEditing(false);
+
+    } catch (error) {
+        console.error('Greška pri izmeni profila:', error);
+    }
+  };
+
+  // izbor profilne slike
+
+  const handleProfileImageChange = (e) => {
+  const file = e.target.files[0];
+
+  if (file) {
+    setProfileImage(file);
+
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      setProfileImagePreview(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  }
+};
+
+  //loadng
+
   if (loadingProfile) {
     return (
       <div className="min-h-[calc(100vh-200px)] bg-gray-50 flex items-center justify-center">
@@ -150,7 +239,9 @@ export default function Profile() {
       </div>
     );
   }
- 
+
+  //render
+
   return (
     <div className="min-h-[calc(100vh-200px)] bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -187,7 +278,7 @@ export default function Profile() {
                   <div className="text-sm text-gray-600">Recepti</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{profileData.savedRecipes}</div>
+                  <div className="text-2xl font-bold text-primary">{savedRecipes.length}</div>
                   <div className="text-sm text-gray-600">Sačuvano</div>
                 </div>
                 <div className="text-center">
@@ -223,14 +314,24 @@ export default function Profile() {
                 <>
                 <button
                   onClick={handleSave}
+                  disabled={savingProfile}
                   className="bg-svetlija text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary transition"
                 >
-                  ✅ Sačuvaj
+                  {savingProfile 
+                    ? 'Čuvanje...'
+                    : '✅ Sačuvaj'
+                  }
                 </button>
+                
                 <button
                   onClick={() => {
                     setIsEditing(false);
-                    setFormData(profileData);
+                    setFormData({ 
+                      firstName: profileData.firstName || '',
+                      lastName: profileData.lastName || '',
+                      bio: profileData.bio || '',
+                      profilePicture: profileData.profilePicture || '' 
+                    });
                   }}
                   className="bg-svetlija text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary transition"
                 >
@@ -293,6 +394,40 @@ export default function Profile() {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-600 outline-none"
                   />
                 </div>
+
+                <div>
+                  <label htmlFor="profilePicture" className="block text-sm font-medium text-gray-700 mb-2" >
+                    Profilna slika
+                  </label>
+                  <div className="flex items-center gap-6">
+                      <img
+                        src={
+                          profileImagePreview ||
+                          profileData.profilePicture ||
+                          profilePlaceholder
+                        }
+                        alt="Profilna slika"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-primary"
+                      />
+                      <div>
+                        <input
+                          id="profileImage"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleProfileImageChange}
+                          className="hidden"
+                        />
+
+                        <label
+                          htmlFor="profileImage"
+                          className="inline-block bg-gray-200 text-gray-900 px-5 py-2 rounded-lg font-semibold hover:bg-gray-300 transition cursor-pointer"
+                        >
+                          📷 Izaberi sliku
+                        </label>
+
+                      </div>
+                    </div>
+                </div>
               </div>
             )}        
         </div>
@@ -300,34 +435,89 @@ export default function Profile() {
         {/* treci div */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="border-b flex gap-4 px-8">
-            <button className="py-4 font-semibold text-primary border-b-2 border-primary">
+            <button
+              onClick={() => setActiveTab('recipes')}
+              className={`py-4 font-semibold ${
+                activeTab === 'recipes'
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-600 hover:text-gary-gray-900'}`}
+            >
               Moji Recepti
             </button>
-            <button className="py-4 font-semibold text-gray-600 hover:text-gray-900">
+            
+            <button
+              onClick={() => setActiveTab('saved')}
+              className={`py-4 font-semibold ${
+                activeTab === 'saved' 
+                  ? 'text-primary border-b-2 border-primary' 
+                  : 'text-gray-600 hover:text-gray-900' }`}
+            >
               Sačuvano
             </button>
+
             <button className="py-4 font-semibold text-gray-600 hover:text-gray-900">
               Aktivnost
             </button>
           </div>
  
           {/* mojii recepti */}
-          <div className="p-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          {activeTab === 'recipes' &&(
+            <div className="p-8">
               {loadingRecipes ? (
-                <p className="text-gray-600">Učitavanje recepata...</p>
+                <p className="text-gray-600"> Učitavanje recepata...
+                </p>
+              ) : recipes.length === 0 ? (
+              
+                <div className="text-center py-10">
+                  <p className="text-gray-600 mb-4">
+                    Još uvek nemate nijedan recept.
+                  </p>
+                  <button
+                    onClick={() => navigate('/add-recipe')}
+                    className="bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-primarydark transition" >
+                      ➕ Dodaj prvi recept
+                  </button>
+                </div>
               ) : (
-                recipes.map(recipe => (
-                  <RecipeCard
-                    key={recipe._id}
-                    {...recipe}
-                  />
-                ))
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {recipes.map(recipe => (
+                    <RecipeCard
+                      key={recipe._id}
+                      {...recipe}
+                    />
+                  ))}
+                </div> 
               )}
             </div>
-          </div>
+          )}
 
-          {/* posle dodati i ostale  */}
+          {/* sacuvani recepti  */}
+
+          {activeTab === 'saved' && (
+            <div className="p-8">
+              {loadingSavedRecipes ? (
+                <p className="text-gray-600">
+                  Učitavanje sačuvanih recepata...
+                </p>
+              ) : savedRecipes.length === 0 ? (
+                <div className="text-center py-10">
+                  <p className="text-gray-600">
+                    Još uvek nemate sačuvane recepte.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {savedRecipes.map(recipe => (
+                    <RecipeCard
+                      key={recipe._id}
+                      {...recipe}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
         </div>
       </div>

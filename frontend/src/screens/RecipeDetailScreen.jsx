@@ -23,27 +23,65 @@ export default function RecipeDetail() {
   const [newComment, setNewComment] = useState('');
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
- 
+  const [saving, setSaving] = useState(false);
+
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-  fetch(`http://localhost:5000/api/recipes/${id}`)
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Recept nije pronađen');
-      }
+    const checkIfSaved = async () => {
+        try {
+          const token = localStorage.getItem('token');
 
-      return response.json();
-    })
-    .then(data => {
-      setRecipe(data);
-      setLoading(false);
-    })
-    .catch(error => {
-      console.error('Greška pri učitavanju recepta:', error);
-      setLoading(false);
-    });
+          if (!token || !recipe?._id) {
+            return;
+          }
+
+          const response = await fetch(
+            'http://localhost:5000/api/users/me/saved-recipes',
+            {
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Greška pri učitavanju sačuvanih recepata');
+          }
+
+          const savedRecipes = await response.json();
+
+          const alreadySaved = savedRecipes.some(
+            savedRecipe => savedRecipe._id === recipe._id
+          );
+
+          setIsSaved(alreadySaved);
+
+        } catch (error) {
+            console.error('Greška pri proveri sačuvanog recepta:', error);
+        }
+    };
+    checkIfSaved();
+  }, [recipe]);
+  
+  useEffect(() => {
+    fetch(`http://localhost:5000/api/recipes/${id}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Recept nije pronađen');
+        }
+
+        return response.json();
+      })
+      .then(data => {
+        setRecipe(data);
+        setLoading(false);
+      })
+      .catch(error => {
+        console.error('Greška pri učitavanju recepta:', error);
+        setLoading(false);
+      });
   }, [id]);
 
   if (loading) {
@@ -61,6 +99,47 @@ export default function RecipeDetail() {
      </div>
     );
   }
+
+  const handleSave = async () => {
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+          alert('Morate biti prijavljeni da biste sačuvali recept.');
+          return;
+      }
+
+      setSaving(true);
+
+      const method = isSaved ? 'DELETE' : 'POST';
+
+      const response = await fetch(
+        `http://localhost:5000/api/users/me/saved-recipes/${recipe._id}`,
+          {
+            method,
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'Greška pri čuvanju recepta'
+        );
+      }
+
+      setIsSaved(!isSaved);
+
+    } catch (error) {
+        console.error('Greška:', error);
+        alert(error.message);
+    } finally {
+        setSaving(false);
+    }
+  };
 
   const handleCommentSubmit = (e) => {
     e.preventDefault();
@@ -101,7 +180,8 @@ export default function RecipeDetail() {
               ❤️
             </button>
             <button
-              onClick={() => setIsSaved(!isSaved)}
+              onClick={handleSave}
+              disabled={saving}
               className={`p-3 rounded-full transition ${
                 isSaved
                   ? 'bg-blue-500 text-white'
