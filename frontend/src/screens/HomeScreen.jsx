@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import { motion } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { uploadImage } from '../services/cloudinaryService';
+import pic from '../assets/images/download.png';
 
 export default function Home({user}) {
 
@@ -34,7 +34,7 @@ export default function Home({user}) {
               <div>
                 <h1 className="text-5xl font-bold mb-4">
                   {
-                    user ? `Dobrodošli nazad, ${user.username}!`
+                    user ? `Dobrodošli nazad, ${user.firstName}!`
                     : 'Inspiracija za vaš sledeći obrok'
                   }
                 </h1>
@@ -74,10 +74,14 @@ export default function Home({user}) {
                 </div>
               </div>
 
-              {/* ovde posle smisliti nesto */}
               <div className="text-center">
-                <div className="text-8xl">🍽️</div>
-                <p className="text-lg mt-4 text-orange-100">npr logo</p>
+                <div className="text-8xl">
+                  <img
+                    src={pic}
+                    alt="app logo"
+                    className="w-40 h-40 object-contain mx-auto scale-150"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -145,25 +149,6 @@ export default function Home({user}) {
             </div>
           </div>
         </section>
-
-{/* TEST ZA UPLOAD */}
-        <input
-  type="file"
-  accept="image/*"
-  onChange={async (e) => {
-    const file = e.target.files[0];
-
-    if (!file) return;
-
-    try {
-      const imageUrl = await uploadImage(file);
-
-      console.log('Uploaded image:', imageUrl);
-    } catch (error) {
-      console.error(error);
-    }
-  }}
-/>
 
         {/* --------------------- */}
         <section className="bg-primary text-white py-16">

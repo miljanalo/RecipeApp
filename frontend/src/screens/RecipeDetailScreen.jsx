@@ -25,8 +25,12 @@ export default function RecipeDetail() {
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const [currentUser, setCurrentUser] = useState(null);
+
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // da li je recept sacuvan
 
   useEffect(() => {
     const checkIfSaved = async () => {
@@ -64,6 +68,8 @@ export default function RecipeDetail() {
     };
     checkIfSaved();
   }, [recipe]);
+
+  // ucitavanje recepta
   
   useEffect(() => {
     fetch(`http://localhost:5000/api/recipes/${id}`)
@@ -84,6 +90,43 @@ export default function RecipeDetail() {
       });
   }, [id]);
 
+  // uzima ulogovaog korisnika
+
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const token = localStorage.getItem('token');
+
+        if (!token) {
+          return;
+        }
+
+        const response = await fetch(
+          'http://localhost:5000/api/auth/me',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Greška pri učitavanju korisnika');
+        }
+
+        const data = await response.json();
+
+        setCurrentUser(data);
+
+      } catch (error) {
+        console.error('Greška pri učitavanju korisnika:', error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
+
+  //loading
+
   if (loading) {
     return (
       <div className="text-center py-20 text-gray-600">
@@ -99,6 +142,11 @@ export default function RecipeDetail() {
      </div>
     );
   }
+
+  const isAuthor =
+  currentUser &&
+  recipe.author &&
+  currentUser._id === recipe.author._id;
 
   const handleSave = async () => {
     try {
@@ -141,6 +189,53 @@ export default function RecipeDetail() {
     }
   };
 
+  //brisanje recepta - korisnik ciji je recept
+  const handleDelete = async () => {
+    const confirmed = window.confirm(
+      'Da li ste sigurni da želite da obrišete ovaj recept?'
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        alert('Morate biti prijavljeni.');
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:5000/api/recipes/${recipe._id}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'Greška pri brisanju recepta'
+        );
+      }
+
+      alert('Recept je uspešno obrisan.');
+
+      navigate('/recipes');
+
+    } catch (error) {
+      console.error('Greška pri brisanju recepta:', error);
+      alert(error.message);
+    }
+  };
+
+  //komentarisanje
   const handleCommentSubmit = (e) => {
     e.preventDefault();
     console.log('Novi komentar:', newComment);
@@ -192,6 +287,24 @@ export default function RecipeDetail() {
             </button>
           </div>
         </div>
+
+        {isAuthor && (
+          <div className="flex gap-3 mb-6">
+            <button
+              onClick={() => navigate(`/recipes/${recipe._id}/edit`)}
+              className="bg-primary text-white px-5 py-2 rounded-lg font-semibold hover:bg-primarydark transition"
+            >
+              ✏️ Izmeni recept
+            </button>
+
+            <button
+              onClick={handleDelete}
+              className="bg-red-500 text-white px-5 py-2 rounded-lg font-semibold hover:bg-red-600 transition"
+            >
+              🗑️ Obriši recept
+            </button>
+          </div>
+        )}
  
         {/* sekcija ispod slike */}
         <div className="bg-white rounded-lg shadow-md p-8 mb-8">

@@ -24,7 +24,7 @@ mongoose.connect(process.env.MONGODB_URI)
         console.error('MongoDB connection error:', error);
     });
 
-{/* recipe apis */}
+// recipe apis
 
 app.get('/', (req, res) => {
     res.send('Backend radi!');
@@ -39,6 +39,8 @@ app.get('/api/recipes', async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 });
+
+// objavljivanje recepta - ulogovani korisnik
 
 app.post('/api/recipes', authMiddleware, async (req, res) => {
     try {
@@ -55,21 +57,64 @@ app.post('/api/recipes', authMiddleware, async (req, res) => {
     }
 });
 
-app.put('/api/recipes/:id', async (req, res) => {
+// izmena recepta - ulogovani korisnik ciji je recept
+
+app.put('/api/recipes/:id', authMiddleware, async (req, res) => {
     try {
+        const recipe = await Recipe.findById(req.params.id);
+
+        if (!recipe) {
+            return res.status(404).json({
+                message: 'Recept nije pronađen.'
+            });
+        }
+        // samo autor može da izmeni recept
+        if (recipe.author.toString() !== req.userId) {
+            return res.status(403).json({
+                message: 'Nemate dozvolu da izmenite ovaj recept.'
+            });
+        }
+
         const updatedRecipe = await Recipe.findByIdAndUpdate(
             req.params.id,
             req.body,
             { new: true, runValidators: true }
-        );
+        ).populate('author');
 
-        if (!updatedRecipe) {
+        res.status(200).json(updatedRecipe);
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
+// brisanje recepta - ulogovani korisnik ciji je recept
+
+app.delete('/api/recipes/:id', authMiddleware, async (req, res) => {
+    try {
+        const recipe = await Recipe.findById(req.params.id);
+
+        if (!recipe) {
             return res.status(404).json({
-                message: 'Recept nije pronađen'
+                message: 'Recept nije pronađen.'
             });
         }
 
-        res.status(200).json(updatedRecipe);
+        // samo autor može da obrise recept
+        if (recipe.author.toString() !== req.userId) {
+            return res.status(403).json({
+                message: 'Nemate dozvolu da obrišete ovaj recept.'
+            });
+        }
+
+        await Recipe.findByIdAndDelete(req.params.id);
+
+        res.status(200).json({
+            message: 'Recept je uspešno obrisan.'
+        });
+
     } catch (error) {
         res.status(500).json({
             message: error.message
