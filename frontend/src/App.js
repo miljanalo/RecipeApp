@@ -11,6 +11,7 @@ import Register from './screens/auth/RegisterScreen';
 import Profile from './screens/ProfileScreen';
 import Admin from './screens/admin/AdminDashboard';
 import EditRecipe from './screens/EditRecipeScreen';
+import UserProfileScreen from './screens/UserProfileScreen';
 import { useEffect, useState } from 'react';
 
 function App() {
@@ -67,6 +68,7 @@ function App() {
             <Route path="/profile" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>}/>
             <Route path="/admin" element={<ProtectedRoute user={user}><Admin /></ProtectedRoute>}/>
             <Route path="/recipes/:id/edit" element={<EditRecipe />}/>
+            <Route path="/profile/:id" element={<UserProfileScreen />} />
           </Routes>
         </main>
         

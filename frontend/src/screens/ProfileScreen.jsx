@@ -152,51 +152,53 @@ export default function Profile() {
  
   const handleSave = async () => {
     try {
-        const token = localStorage.getItem('token');
+      setSavingProfile(true);
 
-        let profilePictureUrl = formData.profilePicture;
+      const token = localStorage.getItem('token');
+
+      let profilePictureUrl = formData.profilePicture;
         
-        if (profileImage) {
-          profilePictureUrl = await uploadImage(profileImage);
-        }
+      if (profileImage) {
+        profilePictureUrl = await uploadImage(profileImage);
+      }
 
-        const response = await fetch('http://localhost:5000/api/auth/me', {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                firstName: formData.firstName,
-                lastName: formData.lastName,
-                bio: formData.bio,
-                profilePicture: profilePictureUrl
-            })
-        });
+      const response = await fetch('http://localhost:5000/api/auth/me', {
+          method: 'PUT',
+          headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              bio: formData.bio,
+              profilePicture: profilePictureUrl
+          })
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (!response.ok) {
-            throw new Error(data.message || 'Greška pri izmeni profila');
-        }
+      if (!response.ok) {
+          throw new Error(data.message || 'Greška pri izmeni profila');
+      }
 
-        setProfileData(data);
-        setFormData({
-          firstName: data.firstName || '',
-          lastName: data.lastName || '',
-          bio: data.bio || '',
-          profilePicture: data.profilePicture || ''
-        });
+      setProfileData(data);
+      setFormData({
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+        bio: data.bio || '',
+        profilePicture: data.profilePicture || ''
+      });
 
-        setProfileImage(null);
-        setProfileImagePreview('');
+      setProfileImage(null);
+      setProfileImagePreview('');
 
-        localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem('user', JSON.stringify(data));
 
-        setIsEditing(false);
+      setIsEditing(false);
 
     } catch (error) {
-        console.error('Greška pri izmeni profila:', error);
+      console.error('Greška pri izmeni profila:', error);
     }
   };
 
@@ -282,11 +284,11 @@ export default function Profile() {
                   <div className="text-sm text-gray-600">Sačuvano</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{profileData.followers}</div>
+                  <div className="text-2xl font-bold text-primary">{profileData.followers?.length || 0}</div>
                   <div className="text-sm text-gray-600">Pratioci</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-primary">{profileData.following}</div>
+                  <div className="text-2xl font-bold text-primary">{profileData.following?.length || 0}</div>
                   <div className="text-sm text-gray-600">Pratim</div>
                 </div>
               </div>
@@ -332,6 +334,8 @@ export default function Profile() {
                       bio: profileData.bio || '',
                       profilePicture: profileData.profilePicture || '' 
                     });
+                    setProfileImage(null);
+                    setProfileImagePreview('');
                   }}
                   className="bg-svetlija text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary transition"
                 >
