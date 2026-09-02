@@ -21,7 +21,26 @@ const recipeSchema = new mongoose.Schema({
     },
 
     rating: {
-        type: Number
+        type: Number,
+        default: 0
+    },   
+
+    ratings: {
+        type: [
+            {
+                user: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: 'User',
+                    required: true
+                },
+                value: {
+                    type: Number,
+                    required: true,
+                    min: 1,
+                    max: 5
+                }
+            }
+        ], 
     },
 
     difficulty: {
@@ -33,10 +52,12 @@ const recipeSchema = new mongoose.Schema({
         type: String
     },
 
-    likes: {
-        type: Number,
-        default: 0
-    },
+    likes: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User'
+        }
+    ],
 
     saves: {
         type: Number,
@@ -62,17 +83,22 @@ const recipeSchema = new mongoose.Schema({
         default: []
     },
 
-    comments: {
-        type: [
-            {
-                author: String,
-                text: String,
-                date: String,
-                rating: Number
+    comments: [
+        {
+            author: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: 'User'
+            },
+            text: {
+                type: String,
+                required: true
+            },
+            date: {
+                type: Date,
+                default: Date.now
             }
-        ],
-        default: []
-    }
+        }
+    ]
 });
 
 module.exports = mongoose.model('Recipe', recipeSchema);

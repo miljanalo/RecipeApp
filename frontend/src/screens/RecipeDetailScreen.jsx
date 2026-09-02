@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 export default function RecipeDetail() {
 
@@ -21,7 +22,13 @@ export default function RecipeDetail() {
   const navigate = useNavigate();
   
   const [newComment, setNewComment] = useState('');
+  const [userRating, setUserRating] = useState(0);
+  const [ratingLoading, setRatingLoading] = useState(false);
+
   const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+  const [loadingLike, setLoadingLike] = useState(false);
+
   const [isSaved, setIsSaved] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -82,7 +89,28 @@ export default function RecipeDetail() {
       })
       .then(data => {
         setRecipe(data);
+        setLikesCount(data.likes?.length || 0);
         setLoading(false);
+
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        if (user) {
+            const userId = user.id || user._id;
+
+            const alreadyLiked = data.likes?.some(
+                id => id.toString() === userId.toString()
+            );
+            
+            setIsLiked(alreadyLiked);
+
+            const userRatingData = data.ratings?.find(
+                rating => rating.user.toString() === userId.toString()
+            );
+
+            if (userRatingData) {
+                setUserRating(userRatingData.value);
+            }
+        }
       })
       .catch(error => {
         console.error('Greška pri učitavanju recepta:', error);
@@ -189,6 +217,98 @@ export default function RecipeDetail() {
     }
   };
 
+  //lajkovanje
+  const handleLike = async () => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert('Morate biti prijavljeni da biste lajkovali recept.');
+        return;
+    }
+
+    try {
+        setLoadingLike(true);
+
+        const method = isLiked ? 'DELETE' : 'POST';
+
+        const response = await fetch(
+            `http://localhost:5000/api/recipes/${id}/like`,
+            {
+                method,
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || 'Greška pri lajkovanju recepta');
+        }
+
+        setIsLiked(data.isLiked);
+        setLikesCount(data.likesCount);
+
+    } catch (error) {
+        console.error('Greška pri lajkovanju:', error);
+        alert(error.message);
+    } finally {
+        setLoadingLike(false);
+    }
+  };
+
+  //rejting
+  const handleRating = async (ratingValue) => {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert('Morate biti prijavljeni da biste ocenili recept.');
+        return;
+    }
+
+    try {
+        setRatingLoading(true);
+
+        const response = await fetch(
+            `http://localhost:5000/api/recipes/${id}/rating`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    rating: ratingValue
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message || 'Greška pri ocenjivanju recepta'
+            );
+        }
+
+        // cuvamo korisnikovu ocenu
+        setUserRating(data.userRating);
+
+        // azuriramo prosecnu ocenu
+        setRecipe(prev => ({
+            ...prev,
+            rating: data.rating
+        }));
+
+    } catch (error) {
+        console.error('Greška pri ocenjivanju:', error);
+        alert(error.message);
+    } finally {
+        setRatingLoading(false);
+    }
+  };
+
   //brisanje recepta - korisnik ciji je recept
   const handleDelete = async () => {
     const confirmed = window.confirm(
@@ -236,10 +356,52 @@ export default function RecipeDetail() {
   };
 
   //komentarisanje
-  const handleCommentSubmit = (e) => {
+  const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    console.log('Novi komentar:', newComment);
-    setNewComment('');
+
+    if (!newComment.trim()) {
+      alert('Komentar ne može biti prazan.');
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        alert('Morate biti prijavljeni da biste ostavili komentar.');
+        return;
+      }
+
+      const response = await fetch(
+        `http://localhost:5000/api/recipes/${id}/comments`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            text: newComment
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'Greška pri dodavanju komentara'
+        );
+      }
+
+      setRecipe(data);
+
+      setNewComment('');
+
+    } catch (error) {
+      console.error('Greška pri dodavanju komentara:', error);
+      alert(error.message);
+    }
   };
  
   return (
@@ -265,7 +427,8 @@ export default function RecipeDetail() {
           {/* Like i save */}
           <div className="absolute top-4 right-4 flex gap-2">
             <button
-              onClick={() => setIsLiked(!isLiked)}
+              onClick={handleLike}
+              disabled={loadingLike}
               className={`p-3 rounded-full transition ${
                 isLiked
                   ? 'bg-red-500 text-white'
@@ -314,7 +477,9 @@ export default function RecipeDetail() {
             {recipe.title}
           </h1>
           <p className="text-gray-600 mb-6">
-            Autor: <span className="font-semibold text-gray-900">{recipe.author?.firstName} {recipe.author?.lastName}</span>
+            Autor: <Link to={`/profile/${recipe.author?._id}`} className="font-semibold text-gray-900 hover:text-[#668363] transition">
+              {recipe.author?.firstName} {recipe.author?.lastName}
+            </Link>
           </p>
  
           {/* lajkovi, saveovi,... */}
@@ -340,7 +505,7 @@ export default function RecipeDetail() {
             <div className="flex items-center gap-2">
               <span className="text-2xl">❤️</span>
               <div>
-                <div className="font-bold text-lg">{recipe.likes}</div>
+                <div className="font-bold text-lg">{recipe.likes?.length || 0}</div>
                 <div className="text-sm text-gray-600">Lajkovi</div>
               </div>
             </div>
@@ -373,6 +538,37 @@ export default function RecipeDetail() {
           <p className="text-gray-700 mb-6 text-lg">
             {recipe.description}
           </p>
+          
+        </div>
+
+        {/* Ocena korisnika */}
+        <div className=" mb-7">
+          <h3 className="font-semibold text-gray-900 mb-2">
+            Vaša ocena
+          </h3>
+
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map(star => (
+              <button
+                key={star}
+                onClick={() => handleRating(star)}
+                disabled={ratingLoading}
+                className={`text-3xl transition ${
+                  star <= userRating
+                    ? 'text-yellow-400'
+                    : 'text-gray-300 hover:text-yellow-300'
+                }`}
+              >
+                ★
+              </button>
+            ))}
+          </div>
+
+          {userRating > 0 && (
+            <p className="text-sm text-gray-500 mt-1">
+              Vaša ocena: {userRating}/5
+            </p>
+          )}
         </div>
  
         {/* grid sa dve sekcije */}
@@ -406,7 +602,7 @@ export default function RecipeDetail() {
             {/* komentari */}
             <div className="bg-white rounded-lg shadow-md p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                Komentari ({recipe.comments.length || 0})
+                Komentari ({recipe.comments?.length || 0})
               </h2>
  
               {/* forma za novi */}
@@ -429,18 +625,22 @@ export default function RecipeDetail() {
               {/* svi komentari */}
               <div className="space-y-6">
                 {recipe.comments?.map(comment => (
-                  <div key={comment.id} className="pb-6 border-b last:border-b-0">
+                  <div key={comment._id} className="pb-6 border-b last:border-b-0">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-bold text-gray-900">{comment.author}</h3>
-                      <span className="text-sm text-gray-600">{comment.date}</span>
+                      <h3 className="font-bold text-gray-900">
+                        {comment.author?.firstName} {comment.author?.lastName}
+                      </h3>
+                      <span className="text-sm text-gray-600">
+                        {new Date(comment.date).toLocaleDateString('sr-RS')}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-1 mb-2">
+                    {/*<div className="flex items-center gap-1 mb-2">
                       {[...Array(5)].map((_, i) => (
                         <span key={i} className={i < comment.rating ? '★' : '☆'}>
                           {i < comment.rating ? '★' : '☆'}
                         </span>
                       ))}
-                    </div>
+                    </div>*/}
                     <p className="text-gray-700">{comment.text}</p>
                   </div>
                 ))}

@@ -37,9 +37,12 @@ export default function RecipeCard({ _id, title, image, author, rating, difficul
       {/* Sadržaj */}
       <div className="p-4">
         {/* Naslov */}
-        <h3 className="font-bold text-lg text-textsiva mb-2 line-clamp-2 hover:text-orange-600">
-          {title}
-        </h3>
+        <Link to={`/recipes/${_id}`}>
+          <h3 className="font-bold text-lg text-textsiva mb-2 line-clamp-2 hover:text-orange-600">
+            {title}
+          </h3>
+        </Link>
+        
 
         {/* Autor */}
         <p className="text-sm text-textsvetlosiva mb-3">
