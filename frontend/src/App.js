@@ -17,11 +17,13 @@ import { useEffect, useState } from 'react';
 function App() {
 
   const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem('user'))
+    JSON.parse(localStorage.getItem('user')) ||
+    JSON.parse(sessionStorage.getItem('user'))
   );
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') ||
+    sessionStorage.getItem('token');
 
     if (!token) {
         return;
@@ -61,7 +63,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home user={user}/>} />
             <Route path="/login" element={<Login setUser={setUser} />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Register setUser={setUser} />} />
             <Route path="/recipes" element={<Recipes />} />
             <Route path="/recipes/:id" element={<RecipeDetail />} />
             <Route path="/add-recipe" element={<ProtectedRoute user={user}> <AddRecipe /> </ProtectedRoute>}/>

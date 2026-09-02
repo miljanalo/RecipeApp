@@ -45,8 +45,15 @@ router.post('/register', async (req, res) => {
 
         const savedUser = await user.save();
 
+        const token = jwt.sign(
+            { userId: savedUser._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
         res.status(201).json({
             message: 'Uspešna registracija',
+            token,
             user: {
                 id: savedUser._id,
                 firstName: savedUser.firstName,

@@ -35,7 +35,8 @@ export default function Profile() {
  //ucitavanje profila
 
   useEffect(() => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token') ||
+  sessionStorage.getItem('token');
 
   if (!token) {
     setLoadingProfile(false);
@@ -70,7 +71,8 @@ export default function Profile() {
   //ucitavanje korisnikovih recepata
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') ||
+    sessionStorage.getItem('token');
 
     if (!token) {
       setLoadingRecipes(false);
@@ -104,7 +106,8 @@ export default function Profile() {
   //ucitavanje savuvanih recepata
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') ||
+    sessionStorage.getItem('token');
     
     if (!token) {
       setLoadingSavedRecipes(false);
@@ -154,7 +157,8 @@ export default function Profile() {
     try {
       setSavingProfile(true);
 
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') ||
+      sessionStorage.getItem('token');
 
       let profilePictureUrl = formData.profilePicture;
         

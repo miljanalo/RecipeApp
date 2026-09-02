@@ -42,7 +42,8 @@ export default function RecipeDetail() {
   useEffect(() => {
     const checkIfSaved = async () => {
         try {
-          const token = localStorage.getItem('token');
+          const token = localStorage.getItem('token') ||
+          sessionStorage.getItem('token');
 
           if (!token || !recipe?._id) {
             return;
@@ -123,7 +124,8 @@ export default function RecipeDetail() {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') ||
+        sessionStorage.getItem('token');
 
         if (!token) {
           return;
@@ -178,7 +180,8 @@ export default function RecipeDetail() {
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') ||
+      sessionStorage.getItem('token');
 
       if (!token) {
           alert('Morate biti prijavljeni da biste sačuvali recept.');
@@ -219,7 +222,8 @@ export default function RecipeDetail() {
 
   //lajkovanje
   const handleLike = async () => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') ||
+    sessionStorage.getItem('token');
 
     if (!token) {
         alert('Morate biti prijavljeni da biste lajkovali recept.');
@@ -260,7 +264,8 @@ export default function RecipeDetail() {
 
   //rejting
   const handleRating = async (ratingValue) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') ||
+    sessionStorage.getItem('token');
 
     if (!token) {
         alert('Morate biti prijavljeni da biste ocenili recept.');
@@ -320,7 +325,8 @@ export default function RecipeDetail() {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') ||
+      sessionStorage.getItem('token');
 
       if (!token) {
         alert('Morate biti prijavljeni.');
@@ -365,7 +371,8 @@ export default function RecipeDetail() {
     }
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') ||
+      sessionStorage.getItem('token');
 
       if (!token) {
         alert('Morate biti prijavljeni da biste ostavili komentar.');

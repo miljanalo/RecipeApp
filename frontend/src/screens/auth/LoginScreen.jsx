@@ -6,16 +6,17 @@ export default function LoginScreen({setUser}) {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
+    remember: false
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
  
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: type === 'checkbox' ? checked : value
     }));
   };
  
@@ -39,11 +40,14 @@ export default function LoginScreen({setUser}) {
         throw new Error(data.message || 'Greška pri prijavi');
       }
 
-      // sacuvaj token
-      localStorage.setItem('token', data.token);
-
-      // sacuvaj trenutno ulogovanog korisnika
-      localStorage.setItem('user', JSON.stringify(data.user));
+      // cuvanje ulogovanog korisnika ako je oznacio checkbox
+      if (formData.remember) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      } else {
+        sessionStorage.setItem('token', data.token);
+        sessionStorage.setItem('user', JSON.stringify(data.user));
+      }
 
       // obavesti app da je korisnik ulogovan
       setUser(data.user);
@@ -120,6 +124,8 @@ export default function LoginScreen({setUser}) {
               id="remember"
               name="remember"
               type="checkbox"
+              checked={formData.remember}
+              onChange={handleChange}
               className="h-4 w-4 text-primary focus:ring-primarydark border-gray-300 rounded"
             />
             <label htmlFor="remember" className="ml-2 block text-sm text-textsiva">

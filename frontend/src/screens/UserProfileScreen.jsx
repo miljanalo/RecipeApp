@@ -46,7 +46,8 @@ export default function UserProfileScreen() {
 
     const checkFollowStatus = async () => {
         try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') ||
+        sessionStorage.getItem('token');
 
         if (!token) {
             return;
@@ -74,7 +75,8 @@ export default function UserProfileScreen() {
 
     const handleFollow = async () => {
         try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('token') ||
+        sessionStorage.getItem('token');
 
         if (!token) {
             alert('Morate biti prijavljeni.');

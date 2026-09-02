@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
-export default function Register() {
+export default function Register({ setUser }) {
 const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: '',
@@ -41,12 +41,44 @@ const navigate = useNavigate();
     setLoading(true);
  
     try {
- 
-      // Privremeno za testiranje
-      console.log('Registracija:', formData);
-      navigate('/login');
+      const response = await fetch(
+        'http://localhost:5000/api/auth/register',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            username: formData.username,
+            email: formData.email,
+            password: formData.password
+          })
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || 'Greška pri registraciji'
+        );
+      }
+
+      //automatska prijava
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      setUser(data.user);
+
+      alert('Uspešna registracija!');
+
+      navigate('/');
+
     } catch (err) {
-      setError(err.response?.data?.message || 'Greška pri registraciji');
+      console.error('Greška pri registraciji:', err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }

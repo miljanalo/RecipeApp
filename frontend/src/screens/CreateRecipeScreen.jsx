@@ -98,7 +98,8 @@ export default function AddRecipe() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') ||
+      sessionStorage.getItem('token');
 
       if (!token) {
         setError('Morate biti prijavljeni da biste dodali recept.');
