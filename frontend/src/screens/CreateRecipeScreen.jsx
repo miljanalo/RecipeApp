@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { uploadImage } from '../services/cloudinaryService';
+import { getToken } from '../services/authService';
 
 export default function AddRecipe() {
   const navigate = useNavigate();
@@ -98,8 +99,7 @@ export default function AddRecipe() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token') ||
-      sessionStorage.getItem('token');
+      const token = getToken();
 
       if (!token) {
         setError('Morate biti prijavljeni da biste dodali recept.');

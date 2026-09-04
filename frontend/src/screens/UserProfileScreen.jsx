@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import profilePlaceholder from '../assets/images/blank-profile-picture-973460-1-1-1024x1024-1.png';
+import { getUser, getToken } from '../services/authService';
 
 export default function UserProfileScreen() {
     const { id } = useParams();
 
-    const loggedInUser = JSON.parse(localStorage.getItem('user'));
-    const isOwnProfile = loggedInUser?._id === id;
+    const loggedInUser = getUser();
+    const loggedInUserId = loggedInUser?.id || loggedInUser?._id;
+    const isOwnProfile = loggedInUserId === id;
 
     const [user, setUser] = useState(null);
     const [recipes, setRecipes] = useState([]);
@@ -46,8 +48,7 @@ export default function UserProfileScreen() {
 
     const checkFollowStatus = async () => {
         try {
-        const token = localStorage.getItem('token') ||
-        sessionStorage.getItem('token');
+        const token = getToken();
 
         if (!token) {
             return;
@@ -75,8 +76,7 @@ export default function UserProfileScreen() {
 
     const handleFollow = async () => {
         try {
-        const token = localStorage.getItem('token') ||
-        sessionStorage.getItem('token');
+        const token = getToken();
 
         if (!token) {
             alert('Morate biti prijavljeni.');
@@ -106,8 +106,8 @@ export default function UserProfileScreen() {
         setUser(prev => ({
             ...prev,
             followers: isFollowing
-            ? prev.followers.filter(follower => follower._id !== JSON.parse(localStorage.getItem('user')).id)
-            : [...prev.followers, { _id: JSON.parse(localStorage.getItem('user')).id }]
+            ? prev.followers.filter(follower => follower._id !== loggedInUser)
+            : [...prev.followers, { _id: loggedInUserId }]
         }));
 
         } catch (error) {

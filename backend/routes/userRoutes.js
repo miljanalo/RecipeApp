@@ -12,7 +12,7 @@ const router = express.Router();
 //pronalazenje korisnika? mozda ne bude trebalo 
 router.get('/', async (req, res) => {
     try {
-        const users = await User.find();
+        const users = await User.find().select('-password');
 
         res.status(200).json(users);
     } catch (error) {
@@ -30,36 +30,6 @@ router.get('/me/recipes', authMiddleware, async (req, res) => {
         }).populate('author');
 
         res.status(200).json(recipes);
-
-    } catch (error) {
-        res.status(500).json({
-            message: error.message
-        });
-    }
-});
-
-// profil drugog korisnika
-router.get('/:id', async (req, res) => {
-    try {
-        const user = await User.findById(req.params.id)
-            .select('-password')
-            .populate('followers', 'firstName lastName username profilePicture')
-            .populate('following', 'firstName lastName username profilePicture');
-
-        if (!user) {
-            return res.status(404).json({
-                message: 'Korisnik nije pronađen.'
-            });
-        }
-
-        const recipes = await Recipe.find({
-            author: req.params.id
-        });
-
-        res.status(200).json({
-            user,
-            recipes
-        });
 
     } catch (error) {
         res.status(500).json({
@@ -123,11 +93,15 @@ router.post('/me/saved-recipes/:recipeId', authMiddleware, async (req, res) => {
 
         user.savedRecipes.push(recipeId);
 
+        recipe.saves += 1;
+
         await user.save();
+        await recipe.save();
 
         res.status(200).json({
             message: 'Recept je uspešno sačuvan.',
-            savedRecipes: user.savedRecipes
+            savedRecipes: user.savedRecipes,
+            saves: recipe.saves
         });
 
     } catch (error) {
@@ -150,16 +124,69 @@ router.delete('/me/saved-recipes/:recipeId', authMiddleware, async (req, res) =>
                 message: 'Korisnik nije pronađen.'
             });
         }
+        
+        const recipe = await Recipe.findById(recipeId);
 
-        user.savedRecipes = user.savedRecipes.filter(
-            id => id.toString() !== recipeId
+         if (!recipe) {
+            return res.status(404).json({
+                message: 'Recept nije pronađen.'
+            });
+        }
+
+        const wasSaved = user.savedRecipes.some(
+            savedId => savedId.toString() === recipeId
         );
 
+        user.savedRecipes = user.savedRecipes.filter(
+            savedId => savedId.toString() !== recipeId
+        );
+
+        if (wasSaved) {
+            recipe.saves = Math.max(0, recipe.saves - 1);
+        }
+
         await user.save();
+        await recipe.save();
+
+        res.status(200).json({
+            message: 'Recept je uklonjen iz sačuvanih.',
+            savedRecipes: user.savedRecipes,
+            saves: recipe.saves
+        });
 
         res.status(200).json({
             message: 'Recept je uklonjen iz sačuvanih.',
             savedRecipes: user.savedRecipes
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            message: error.message
+        });
+    }
+});
+
+// profil drugog korisnika
+router.get('/:id', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id)
+            .select('-password')
+            .populate('followers', 'firstName lastName username profilePicture')
+            .populate('following', 'firstName lastName username profilePicture');
+
+        if (!user) {
+            return res.status(404).json({
+                message: 'Korisnik nije pronađen.'
+            });
+        }
+
+        const recipes = await Recipe.find({
+            author: req.params.id
+        });
+
+        res.status(200).json({
+            user,
+            recipes
         });
 
     } catch (error) {

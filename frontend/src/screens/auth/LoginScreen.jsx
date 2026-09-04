@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { saveAuth } from '../../services/authService.js';
 
 export default function LoginScreen({setUser}) {
   const navigate = useNavigate();
@@ -41,13 +42,7 @@ export default function LoginScreen({setUser}) {
       }
 
       // cuvanje ulogovanog korisnika ako je oznacio checkbox
-      if (formData.remember) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-      } else {
-        sessionStorage.setItem('token', data.token);
-        sessionStorage.setItem('user', JSON.stringify(data.user));
-      }
+      saveAuth(data.token, data.user, formData.remember);
 
       // obavesti app da je korisnik ulogovan
       setUser(data.user);

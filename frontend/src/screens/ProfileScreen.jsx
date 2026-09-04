@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import RecipeCard from '../components/RecipeCard';
 import profilePlaceholder from '../assets/images/blank-profile-picture-973460-1-1-1024x1024-1.png';
 import { uploadImage } from '../services/cloudinaryService';
+import { getToken, saveUser } from '../services/authService';
 
 export default function Profile() {
   
@@ -35,8 +36,7 @@ export default function Profile() {
  //ucitavanje profila
 
   useEffect(() => {
-  const token = localStorage.getItem('token') ||
-  sessionStorage.getItem('token');
+  const token = getToken();
 
   if (!token) {
     setLoadingProfile(false);
@@ -71,8 +71,7 @@ export default function Profile() {
   //ucitavanje korisnikovih recepata
 
   useEffect(() => {
-    const token = localStorage.getItem('token') ||
-    sessionStorage.getItem('token');
+    const token = getToken();
 
     if (!token) {
       setLoadingRecipes(false);
@@ -103,11 +102,10 @@ export default function Profile() {
     });
   }, []);
 
-  //ucitavanje savuvanih recepata
+  //ucitavanje sacuvanih recepata
 
   useEffect(() => {
-    const token = localStorage.getItem('token') ||
-    sessionStorage.getItem('token');
+    const token = getToken();
     
     if (!token) {
       setLoadingSavedRecipes(false);
@@ -157,8 +155,7 @@ export default function Profile() {
     try {
       setSavingProfile(true);
 
-      const token = localStorage.getItem('token') ||
-      sessionStorage.getItem('token');
+      const token = getToken();
 
       let profilePictureUrl = formData.profilePicture;
         
@@ -197,12 +194,14 @@ export default function Profile() {
       setProfileImage(null);
       setProfileImagePreview('');
 
-      localStorage.setItem('user', JSON.stringify(data));
+      saveUser(data);
 
       setIsEditing(false);
 
     } catch (error) {
       console.error('Greška pri izmeni profila:', error);
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -448,7 +447,7 @@ export default function Profile() {
               className={`py-4 font-semibold ${
                 activeTab === 'recipes'
                   ? 'text-primary border-b-2 border-primary'
-                  : 'text-gray-600 hover:text-gary-gray-900'}`}
+                  : 'text-gray-600 hover:text-gray-900'}`}
             >
               Moji Recepti
             </button>

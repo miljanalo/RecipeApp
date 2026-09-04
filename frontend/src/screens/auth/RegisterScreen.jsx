@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { saveAuth } from '../../services/authService';
 
 export default function Register({ setUser }) {
 const navigate = useNavigate();
@@ -67,8 +68,7 @@ const navigate = useNavigate();
       }
 
       //automatska prijava
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      saveAuth(data.token, data.user, true);
 
       setUser(data.user);
 

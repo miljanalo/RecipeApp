@@ -159,7 +159,7 @@ export default function Recipes() {
             </button>
 
             <button
-              onClick={() => handleMealTypeChange('Ručak')}
+              onClick={() => handleMealTypeChange('Glavna jela')}
               className={`px-5 py-2.5 rounded-full font-semibold transition ${
                 mealType === 'Glavna jela'
                   ? 'bg-primary text-white'
@@ -170,7 +170,7 @@ export default function Recipes() {
             </button>
 
             <button
-              onClick={() => handleMealTypeChange('Večera')}
+              onClick={() => handleMealTypeChange('Supe i čorbe')}
               className={`px-5 py-2.5 rounded-full font-semibold transition ${
                 mealType === 'Supe i čorbe'
                   ? 'bg-primary text-white'
@@ -181,18 +181,18 @@ export default function Recipes() {
             </button>
 
             <button
-              onClick={() => handleMealTypeChange('Dezert')}
+              onClick={() => handleMealTypeChange('Deserti')}
               className={`px-5 py-2.5 rounded-full font-semibold transition ${
                 mealType === 'Deserti'
                   ? 'bg-primary text-white'
                   : 'bg-white text-gray-700 hover:bg-gray-100'
               }`}
             >
-              🍰 Dezert
+              🍰 Deserti
             </button>
 
             <button
-              onClick={() => handleMealTypeChange('Užina')}
+              onClick={() => handleMealTypeChange('Pića')}
               className={`px-5 py-2.5 rounded-full font-semibold transition ${
                 mealType === 'Pića'
                   ? 'bg-primary text-white'

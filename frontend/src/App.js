@@ -13,17 +13,14 @@ import Admin from './screens/admin/AdminDashboard';
 import EditRecipe from './screens/EditRecipeScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import { useEffect, useState } from 'react';
+import { getToken, getUser, saveUser, clearAuthStorage } from './services/authService';
 
 function App() {
 
-  const [user, setUser] = useState(
-    JSON.parse(localStorage.getItem('user')) ||
-    JSON.parse(sessionStorage.getItem('user'))
-  );
+  const [user, setUser] = useState(getUser());
 
   useEffect(() => {
-    const token = localStorage.getItem('token') ||
-    sessionStorage.getItem('token');
+    const token = getToken();
 
     if (!token) {
         return;
@@ -43,13 +40,12 @@ function App() {
         })
         .then(data => {
             setUser(data);
-            localStorage.setItem('user', JSON.stringify(data));
+            saveUser(data);
         })
         .catch(error => {
             console.error('Greška pri proveri korisnika:', error);
 
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
+            clearAuthStorage();
             setUser(null);
         });
   }, []);
@@ -69,7 +65,7 @@ function App() {
             <Route path="/add-recipe" element={<ProtectedRoute user={user}> <AddRecipe /> </ProtectedRoute>}/>
             <Route path="/profile" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>}/>
             <Route path="/admin" element={<ProtectedRoute user={user}><Admin /></ProtectedRoute>}/>
-            <Route path="/recipes/:id/edit" element={<EditRecipe />}/>
+            <Route path="/recipes/:id/edit" element={<ProtectedRoute user={user}><EditRecipe /></ProtectedRoute>}/>
             <Route path="/profile/:id" element={<UserProfileScreen />} />
           </Routes>
         </main>

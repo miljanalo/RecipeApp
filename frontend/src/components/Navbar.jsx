@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
+import { logout } from '../services/authService';
 
 export default function Navbar({user, setUser}) {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,8 +10,7 @@ export default function Navbar({user, setUser}) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    logout();
 
     setUser(null);
     setIsOpen(false);

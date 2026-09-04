@@ -20,6 +20,39 @@ router.post('/register', async (req, res) => {
             password
         } = req.body;
 
+        // osnovna validacija podataka
+        if (
+            !firstName?.trim() ||
+            !lastName?.trim() ||
+            !username?.trim() ||
+            !email?.trim() ||
+            !password
+        ) {
+            return res.status(400).json({
+                message: 'Sva polja su obavezna.'
+            });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({
+                message: 'Lozinka mora imati najmanje 6 karaktera.'
+            });
+        }
+
+        if (username.trim().length < 3) {
+            return res.status(400).json({
+                message: 'Username mora imati najmanje 3 karaktera.'
+            });
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(email.trim())) {
+            return res.status(400).json({
+                message: 'Email nije u ispravnom formatu.'
+            });
+        }
+
         const existingUser = await User.findOne({
             $or: [
                 { email: email },
@@ -74,6 +107,12 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        if (!email?.trim() || !password) {
+        return res.status(400).json({
+            message: 'Email i lozinka su obavezni.'
+        });
+    }
 
         // pronadji korisnika
         const user = await User.findOne({ email });

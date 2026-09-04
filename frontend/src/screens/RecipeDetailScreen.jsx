@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getToken, getUser } from '../services/authService';
 
 export default function RecipeDetail() {
 
@@ -42,8 +43,7 @@ export default function RecipeDetail() {
   useEffect(() => {
     const checkIfSaved = async () => {
         try {
-          const token = localStorage.getItem('token') ||
-          sessionStorage.getItem('token');
+          const token = getToken();
 
           if (!token || !recipe?._id) {
             return;
@@ -93,7 +93,7 @@ export default function RecipeDetail() {
         setLikesCount(data.likes?.length || 0);
         setLoading(false);
 
-        const user = JSON.parse(localStorage.getItem('user'));
+        const user = getUser();
 
         if (user) {
             const userId = user.id || user._id;
@@ -124,8 +124,7 @@ export default function RecipeDetail() {
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
-        const token = localStorage.getItem('token') ||
-        sessionStorage.getItem('token');
+        const token = getToken();
 
         if (!token) {
           return;
@@ -180,8 +179,7 @@ export default function RecipeDetail() {
 
   const handleSave = async () => {
     try {
-      const token = localStorage.getItem('token') ||
-      sessionStorage.getItem('token');
+      const token = getToken();
 
       if (!token) {
           alert('Morate biti prijavljeni da biste sačuvali recept.');
@@ -212,6 +210,11 @@ export default function RecipeDetail() {
 
       setIsSaved(!isSaved);
 
+      setRecipe(prev => ({
+      ...prev,
+      saves: data.saves
+    }));
+
     } catch (error) {
         console.error('Greška:', error);
         alert(error.message);
@@ -222,8 +225,7 @@ export default function RecipeDetail() {
 
   //lajkovanje
   const handleLike = async () => {
-    const token = localStorage.getItem('token') ||
-    sessionStorage.getItem('token');
+    const token = getToken();
 
     if (!token) {
         alert('Morate biti prijavljeni da biste lajkovali recept.');
@@ -264,8 +266,7 @@ export default function RecipeDetail() {
 
   //rejting
   const handleRating = async (ratingValue) => {
-    const token = localStorage.getItem('token') ||
-    sessionStorage.getItem('token');
+    const token = getToken();
 
     if (!token) {
         alert('Morate biti prijavljeni da biste ocenili recept.');
@@ -325,8 +326,7 @@ export default function RecipeDetail() {
     }
 
     try {
-      const token = localStorage.getItem('token') ||
-      sessionStorage.getItem('token');
+      const token = getToken();
 
       if (!token) {
         alert('Morate biti prijavljeni.');
@@ -371,8 +371,7 @@ export default function RecipeDetail() {
     }
 
     try {
-      const token = localStorage.getItem('token') ||
-      sessionStorage.getItem('token');
+      const token = getToken();
 
       if (!token) {
         alert('Morate biti prijavljeni da biste ostavili komentar.');
@@ -512,7 +511,7 @@ export default function RecipeDetail() {
             <div className="flex items-center gap-2">
               <span className="text-2xl">❤️</span>
               <div>
-                <div className="font-bold text-lg">{recipe.likes?.length || 0}</div>
+                <div className="font-bold text-lg">{likesCount}</div>
                 <div className="text-sm text-gray-600">Lajkovi</div>
               </div>
             </div>
@@ -641,13 +640,6 @@ export default function RecipeDetail() {
                         {new Date(comment.date).toLocaleDateString('sr-RS')}
                       </span>
                     </div>
-                    {/*<div className="flex items-center gap-1 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <span key={i} className={i < comment.rating ? '★' : '☆'}>
-                          {i < comment.rating ? '★' : '☆'}
-                        </span>
-                      ))}
-                    </div>*/}
                     <p className="text-gray-700">{comment.text}</p>
                   </div>
                 ))}

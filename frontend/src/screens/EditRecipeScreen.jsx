@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { uploadImage } from '../services/cloudinaryService';
+import { getToken } from '../services/authService';
 
 export default function EditRecipe() {
 
@@ -173,8 +174,7 @@ export default function EditRecipe() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem('token') ||
-      sessionStorage.getItem('token');
+      const token = getToken();
 
       if (!token) {
         throw new Error(
