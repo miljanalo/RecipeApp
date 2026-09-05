@@ -51,6 +51,15 @@ export default function Navbar({user, setUser}) {
                 <Link to="/profile" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
                   Profil
                 </Link>
+
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 
                 <button className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition"
                   onClick={handleLogout}
@@ -109,6 +118,15 @@ export default function Navbar({user, setUser}) {
                 <Link to="/profile" className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition">
                   Profil
                 </Link>
+
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition"
+                  >
+                    Admin Panel
+                  </Link>
+                )}
                 
                 <button className="block text-white hover:bg-primarydark px-3 py-2 rounded-md transition"
                   onClick={handleLogout}

@@ -1,7 +1,7 @@
 const express = require('express');
 const Recipe = require('../models/Recipe');
 const authMiddleware = require('../middleware/authMiddleware');
-
+const User = require('../models/User');
 const router = express.Router();
 
 // recipe APIs
@@ -192,6 +192,7 @@ router.delete('/:id/like', authMiddleware, async (req, res) => {
 });
 
 // komentari ----------------------------------------------------------------------
+
 //POST- objava komentara
 router.post('/:id/comments', authMiddleware, async (req, res) => {
   try {
@@ -232,6 +233,64 @@ router.post('/:id/comments', authMiddleware, async (req, res) => {
     });
   }
 });
+
+// DELTE - brisanje komentara
+router.delete('/:recipeId/comments/:commentId', authMiddleware, async (req, res) => {
+        try {
+            const { recipeId, commentId } = req.params;
+
+            const recipe = await Recipe.findById(recipeId);
+
+            if (!recipe) {
+                return res.status(404).json({
+                    message: 'Recept nije pronađen.'
+                });
+            }
+
+            const comment = recipe.comments.id(commentId);
+
+            if (!comment) {
+                return res.status(404).json({
+                    message: 'Komentar nije pronađen.'
+                });
+            }
+
+            // da li je trenutni korisnik admin
+            const user = await User.findById(req.userId).select('role');
+
+            const isAdmin = user?.role === 'admin';
+
+            // da li je trenutni korisnik autor komentara
+            const isAuthor =
+                comment.author.toString() === req.userId.toString();
+
+            // ako nije ni admin ni autor komentara -> nema dozvolu
+            if (!isAdmin && !isAuthor) {
+                return res.status(403).json({
+                    message: 'Nemate dozvolu da obrišete ovaj komentar.'
+                });
+            }
+
+            // brisanje komentara
+            recipe.comments = recipe.comments.filter(
+                comment => comment._id.toString() !== commentId
+            );
+
+            await recipe.save();
+
+            res.status(200).json({
+                message: 'Komentar je uspešno obrisan.'
+            });
+
+        } catch (error) {
+            console.error('Greška pri brisanju komentara:', error);
+
+            res.status(500).json({
+                message: 'Greška pri brisanju komentara.'
+            });
+        }
+    }
+);
 
 // ocenjivanje recepata -------------------------------------------------------------------------------------------------
 

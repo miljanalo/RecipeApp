@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getToken } from '../../services/authService';
+import { Link } from 'react-router-dom';
 
 export default function AdminDashboard() {
 
@@ -9,30 +10,60 @@ export default function AdminDashboard() {
         comments: 0
     });
 
+    const [recentUsers, setRecentUsers] = useState([]);
+    const [recentRecipes, setRecentRecipes] = useState([]);
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
-        const fetchStats = async () => {
+        const fetchAdminData = async () => {
             try {
                 const token = getToken();
 
-                const response = await fetch(
-                    'http://localhost:5000/api/admin/stats',
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                );
+                const headers = {
+                    Authorization: `Bearer ${token}`
+                };
 
-                const data = await response.json();
+                const [statsResponse, usersResponse, recipesResponse] =
+                    await Promise.all([
+                        fetch('http://localhost:5000/api/admin/stats', {
+                            headers
+                        }),
+                        fetch('http://localhost:5000/api/admin/users', {
+                            headers
+                        }),
+                        fetch('http://localhost:5000/api/admin/recipes', {
+                            headers
+                        })
+                    ]);
 
-                if (!response.ok) {
-                    throw new Error(data.message || 'Greška pri učitavanju statistike.');
+                const statsData = await statsResponse.json();
+                const usersData = await usersResponse.json();
+                const recipesData = await recipesResponse.json();
+
+                if (!statsResponse.ok) {
+                    throw new Error(
+                        statsData.message || 'Greška pri učitavanju statistike.'
+                    );
                 }
 
-                setStats(data);
+                if (!usersResponse.ok) {
+                    throw new Error(
+                        usersData.message || 'Greška pri učitavanju korisnika.'
+                    );
+                }
+
+                if (!recipesResponse.ok) {
+                    throw new Error(
+                        recipesData.message || 'Greška pri učitavanju recepata.'
+                    );
+                }
+
+                setStats(statsData);
+
+                setRecentUsers(usersData.slice(0, 5));
+                setRecentRecipes(recipesData.slice(0, 5));
 
             } catch (error) {
                 console.error(error);
@@ -42,7 +73,7 @@ export default function AdminDashboard() {
             }
         };
 
-        fetchStats();
+        fetchAdminData();
     }, []);
 
 
@@ -125,6 +156,113 @@ export default function AdminDashboard() {
                     </p>
                 </div>
 
+            </div>
+
+            {/* Nedavno registrovani korisnici */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 mt-10">
+
+                <div className="px-6 py-5 border-b border-gray-100">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                        Nedavno registrovani korisnici
+                    </h2>
+                </div>
+
+                <div className="divide-y divide-gray-100">
+
+                    {recentUsers.length === 0 ? (
+                        <p className="px-6 py-5 text-gray-500">
+                            Nema registrovanih korisnika.
+                        </p>
+                    ) : (
+                        recentUsers.map(user => (
+                            <Link
+                                key={user._id}
+                                to={`/profile/${user._id}`}
+                                className="px-6 py-4 flex items-center justify-between"
+                            >
+                                <div>
+                                    <p className="font-medium text-gray-800 hover:text-orange-600 transition">
+                                        {user.firstName} {user.lastName}
+                                    </p>
+
+                                    <p className="text-sm text-gray-500">
+                                        @{user.username}
+                                    </p>
+                                </div>
+
+                                <span className="text-sm text-gray-500">
+                                    {user.role === 'admin'
+                                        ? 'Admin'
+                                        : 'Korisnik'}
+                                </span>
+                            </Link>
+                        ))
+                    )}
+
+                </div>
+            </div>
+
+
+            {/* Nedavno dodati recepti */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 mt-8">
+
+                <div className="px-6 py-5 border-b border-gray-100">
+                    <h2 className="text-xl font-semibold text-gray-800">
+                        Nedavno dodati recepti
+                    </h2>
+                </div>
+
+                <div className="divide-y divide-gray-100">
+
+                    {recentRecipes.length === 0 ? (
+                        <p className="px-6 py-5 text-gray-500">
+                            Nema dodatih recepata.
+                        </p>
+                    ) : (
+                        recentRecipes.map(recipe => (
+                            <Link
+                                key={recipe._id}
+                                to={`/recipes/${recipe._id}`}
+                                className="px-6 py-4 flex items-center justify-between"
+                            >
+
+                                <div className="flex items-center gap-4">
+
+                                    {recipe.image ? (
+                                        <img
+                                            src={recipe.image}
+                                            alt={recipe.title}
+                                            className="w-12 h-12 rounded-lg object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                                            🍳
+                                        </div>
+                                    )}
+
+                                    <div>
+                                        <p className="font-medium text-gray-800 hover:text-orange-600 transition">
+                                            {recipe.title}
+                                        </p>
+
+                                        {recipe.author && (
+                                            <p className="text-sm text-gray-500">
+                                                @{recipe.author.username}
+                                            </p>
+                                        )}
+                                    </div>
+
+                                </div>
+
+                                <span className="text-sm text-gray-500">
+                                    {recipe.cookTime} min
+                                </span>
+
+                            </Link>
+                        ))
+                    )}
+
+                </div>
             </div>
 
         </div>

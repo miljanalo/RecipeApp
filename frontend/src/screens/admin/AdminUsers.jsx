@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getToken } from '../../services/authService';
+import { Link } from 'react-router-dom';
 
 export default function AdminUsers() {
 
@@ -186,14 +187,23 @@ export default function AdminUsers() {
                                 >
 
                                     <td className="px-6 py-4">
-                                        <div className="font-medium text-gray-800">
-                                            {user.firstName} {user.lastName}
-                                        </div>
+                                        <Link
+                                            to={`/profile/${user._id}`}
+                                            className="font-medium text-gray-800 hover:text-orange-600 transition"
+                                        >
+                                               {user.firstName} {user.lastName}
+                                        </Link>
+                                        
                                     </td>
 
 
                                     <td className="px-6 py-4 text-gray-600">
-                                        @{user.username}
+                                        <Link
+                                            to={`/profile/${user._id}`}
+                                            className="text-gray-600 hover:text-orange-600 transition"
+                                        >
+                                            @{user.username}
+                                        </Link>
                                     </td>
 
 

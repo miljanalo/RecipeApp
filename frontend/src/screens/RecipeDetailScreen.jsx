@@ -19,7 +19,6 @@ export default function RecipeDetail() {
   };
 
   const { id } = useParams();
-  console.log('ID iz URL-a:', id);
   const navigate = useNavigate();
   
   const [newComment, setNewComment] = useState('');
@@ -37,6 +36,8 @@ export default function RecipeDetail() {
 
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const user = getUser();
 
   // da li je recept sacuvan
 
@@ -409,6 +410,50 @@ export default function RecipeDetail() {
       alert(error.message);
     }
   };
+
+  // brisanje komentara
+  const handleDeleteComment = async (commentId) => {
+    const confirmed = window.confirm(
+        'Da li ste sigurni da želite da obrišete ovaj komentar?'
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    try {
+        const token = getToken();
+
+        const response = await fetch(
+          `http://localhost:5000/api/recipes/${recipe._id}/comments/${commentId}`,
+            {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message || 'Greška pri brisanju komentara.'
+            );
+        }
+
+        setRecipe(prev => ({
+            ...prev,
+            comments: prev.comments.filter(
+                comment => comment._id !== commentId
+            )
+        }));
+
+    } catch (error) {
+        console.error('Greška pri brisanju komentara:', error);
+        alert(error.message);
+    }
+  };
  
   return (
     <div className="min-h-[calc(100vh-200px)] bg-gray-50 py-8">
@@ -636,9 +681,26 @@ export default function RecipeDetail() {
                       <h3 className="font-bold text-gray-900">
                         {comment.author?.firstName} {comment.author?.lastName}
                       </h3>
-                      <span className="text-sm text-gray-600">
-                        {new Date(comment.date).toLocaleDateString('sr-RS')}
-                      </span>
+
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-600">
+                          {new Date(comment.date).toLocaleDateString('sr-RS')}
+                        </span>
+
+                        {(
+                            user?.role === 'admin' ||
+                            (comment.author?._id || comment.author)?.toString() ===
+                            (user?.id || user?._id)?.toString()
+                          ) && (
+                            <button
+                                onClick={() => handleDeleteComment(comment._id)}
+                                className="px-3 py-2 rounded-lg text-sm font-medium bg-red-50 text-red-600 hover:bg-red-100 transition"
+                            >
+                                Obriši
+                            </button>
+                        )}
+                      
+                      </div>
                     </div>
                     <p className="text-gray-700">{comment.text}</p>
                   </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getToken } from '../../services/authService';
+import { Link } from 'react-router-dom';
 
 export default function AdminRecipes() {
 
@@ -192,7 +193,10 @@ export default function AdminRecipes() {
                                     {/* Recept */}
                                     <td className="px-6 py-4">
 
-                                        <div className="flex items-center gap-4">
+                                        <Link
+                                            to={`/recipes/${recipe._id}`}
+                                            className="flex items-center gap-4"
+                                        >
 
                                             {recipe.image ? (
                                                 <img
@@ -207,16 +211,16 @@ export default function AdminRecipes() {
                                             )}
 
                                             <div>
-                                                <p className="font-medium text-gray-800">
+                                                <p className="font-medium text-gray-800 hover:text-orange-600 transition">
                                                     {recipe.title}
                                                 </p>
 
                                                 <p className="text-sm text-gray-500">
-                                                    {recipe.mealType || 'Nije navedeno'}
+                                                    {recipe.mealType || ' '}
                                                 </p>
                                             </div>
 
-                                        </div>
+                                        </Link>
 
                                     </td>
 
@@ -225,15 +229,18 @@ export default function AdminRecipes() {
                                     <td className="px-6 py-4">
 
                                         {recipe.author ? (
-                                            <div>
-                                                <p className="font-medium text-gray-800">
+                                            <Link
+                                                to={`/profile/${recipe.author._id}`}
+                                                className="block"
+                                            >
+                                                <p className="font-medium text-gray-800 hover:text-orange-600 transition">
                                                     {recipe.author.firstName} {recipe.author.lastName}
                                                 </p>
 
                                                 <p className="text-sm text-gray-500">
                                                     @{recipe.author.username}
                                                 </p>
-                                            </div>
+                                            </Link>
                                         ) : (
                                             <span className="text-gray-400">
                                                 Nepoznat autor
