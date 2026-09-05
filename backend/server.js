@@ -7,6 +7,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
 const followRoutes = require('./routes/followRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/users', followRoutes);
+app.use('/api/admin', adminRoutes);
 
 const PORT = 5000;
 

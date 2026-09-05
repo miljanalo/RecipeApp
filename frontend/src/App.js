@@ -9,7 +9,11 @@ import RecipeDetail from './screens/RecipeDetailScreen';
 import Login from './screens/auth/LoginScreen';
 import Register from './screens/auth/RegisterScreen';
 import Profile from './screens/ProfileScreen';
-import Admin from './screens/admin/AdminDashboard';
+import AdminRoute from './components/AdminRoute';
+import AdminLayout from './layouts/AdminLayout';
+import AdminDashboard from './screens/admin/AdminDashboard';
+import AdminUsers from './screens/admin/AdminUsers';
+import AdminRecipes from './screens/admin/AdminRecipes';
 import EditRecipe from './screens/EditRecipeScreen';
 import UserProfileScreen from './screens/UserProfileScreen';
 import { useEffect, useState } from 'react';
@@ -64,7 +68,18 @@ function App() {
             <Route path="/recipes/:id" element={<RecipeDetail />} />
             <Route path="/add-recipe" element={<ProtectedRoute user={user}> <AddRecipe /> </ProtectedRoute>}/>
             <Route path="/profile" element={<ProtectedRoute user={user}><Profile /></ProtectedRoute>}/>
-            <Route path="/admin" element={<ProtectedRoute user={user}><Admin /></ProtectedRoute>}/>
+            <Route path="/admin" element={<AdminRoute user={user}><AdminLayout /></AdminRoute>}>
+              <Route index element={<AdminDashboard />} />
+            </Route>
+            <Route path="/admin" element={<AdminRoute user={user}><AdminLayout /></AdminRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+            </Route>
+            <Route path="/admin" element={<AdminRoute user={user}><AdminLayout /></AdminRoute>}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<AdminUsers />} />
+              <Route path="recipes" element={<AdminRecipes />} />
+            </Route>
             <Route path="/recipes/:id/edit" element={<ProtectedRoute user={user}><EditRecipe /></ProtectedRoute>}/>
             <Route path="/profile/:id" element={<UserProfileScreen />} />
           </Routes>

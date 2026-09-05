@@ -152,7 +152,8 @@ router.post('/login', async (req, res) => {
                 username: user.username,
                 email: user.email,
                 bio: user.bio,
-                profilePicture: user.profilePicture
+                profilePicture: user.profilePicture,
+                role: user.role
             }
         });
 
